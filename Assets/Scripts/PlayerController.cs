@@ -16,7 +16,6 @@ public class PlayerController : MonoBehaviour
     [Header("Grounding")]
     [SerializeField] private float groundStickSpeed;
 
-    private InputActions _inputActions;
     private Vector2 _inputVector;
 
     private CharacterController _characterController;
@@ -26,33 +25,12 @@ public class PlayerController : MonoBehaviour
 
     private void Awake()
     {
-        _inputActions = new InputActions();
-
         _characterController = GetComponent<CharacterController>();
     }
 
-    private void OnEnable()
+    public void UpdateMovementInputVector(Vector2 inputVector)
     {
-        _inputActions.Player.Movement.performed += HandleMovement;
-        _inputActions.Player.Movement.canceled += HandleMovementCancel;
-        _inputActions.Enable();
-    }
-
-    private void OnDisable()
-    {
-        _inputActions.Player.Movement.performed -= HandleMovement;
-        _inputActions.Player.Movement.canceled -= HandleMovementCancel;
-        _inputActions.Disable();
-    }
-
-    private void HandleMovement(InputAction.CallbackContext ctx)
-    {
-        _inputVector = ctx.ReadValue<Vector2>();
-    }
-
-    private void HandleMovementCancel(InputAction.CallbackContext context)
-    {
-        _inputVector = Vector2.zero;
+        _inputVector = inputVector;
     }
 
     private void Update()
@@ -101,7 +79,7 @@ public class PlayerController : MonoBehaviour
     {
         if (_currentRotationSpeed != 0f)
         {
-            transform.Rotate(Vector3.up, _currentRotationSpeed * deltaTime, Space.World);
+            transform.Rotate(Vector3.up, _currentRotationSpeed * deltaTime);
         }
     }
 
