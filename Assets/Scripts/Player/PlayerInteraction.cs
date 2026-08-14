@@ -31,7 +31,7 @@ public class PlayerInteraction : MonoBehaviour
     {
         if (other.CompareTag("Robot") && other.TryGetComponent<RobotController>(out var robotController))
         {
-            robotController.OnPlayerEnter();
+            robotController.OnPlayerEnter(gameObject);
 
             _robotControllers.Add(robotController);
         }
