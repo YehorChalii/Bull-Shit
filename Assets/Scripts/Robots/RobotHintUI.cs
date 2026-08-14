@@ -2,13 +2,21 @@ using UnityEngine;
 
 public class RobotHintUI : MonoBehaviour
 {
-    public void ShowUI()
+    private Quaternion _initialRotation;
+
+    private void Awake()
     {
-        gameObject.SetActive(true);
+        SetHintUIActive(false);
+        _initialRotation = Quaternion.Euler(90, 0, 0);
     }
 
-    public void HideUI()
+    public void SetHintUIActive(bool active)
     {
-        gameObject.SetActive(false);
+        gameObject.SetActive(active);
+    }
+
+    private void LateUpdate()
+    {
+        transform.rotation = _initialRotation;
     }
 }

@@ -3,16 +3,16 @@ using UnityEngine;
 
 public class PlayerInteraction : MonoBehaviour
 {
-    private List<RobotController> _robotControllers = new List<RobotController>();
+    private List<RobotDetectionController> _robotDetectionControllers = new List<RobotDetectionController>();
 
     public void Hack()
     {
-        if (_robotControllers.Count > 0)
+        if (_robotDetectionControllers.Count > 0)
         {
-            RobotController closestRobotController = _robotControllers[0];
+            RobotDetectionController closestRobotController = _robotDetectionControllers[0];
             float minDistance = Vector3.Distance(transform.position, closestRobotController.transform.position);
 
-            foreach (var robotController in _robotControllers)
+            foreach (var robotController in _robotDetectionControllers)
             {
                 float currentDistance = Vector3.Distance(transform.position, robotController.transform.position);
                 if (currentDistance < minDistance)
@@ -22,28 +22,28 @@ public class PlayerInteraction : MonoBehaviour
                 }
             }
 
-            _robotControllers.Remove(closestRobotController);
-            closestRobotController.Deactivate();
+            _robotDetectionControllers.Remove(closestRobotController);
+            closestRobotController.Hack();
         }
     }
 
     private void OnTriggerEnter(Collider other)
     {
-        if (other.CompareTag("Robot") && other.TryGetComponent<RobotController>(out var robotController))
+        if (other.CompareTag("Robot") && other.TryGetComponent<RobotDetectionController>(out var robotController))
         {
             robotController.OnPlayerEnter(gameObject);
 
-            _robotControllers.Add(robotController);
+            _robotDetectionControllers.Add(robotController);
         }
     }
 
     private void OnTriggerExit(Collider other)
     {
-        if (other.CompareTag("Robot") && other.TryGetComponent<RobotController>(out var robotController))
+        if (other.CompareTag("Robot") && other.TryGetComponent<RobotDetectionController>(out var robotController))
         {
             robotController.OnPlayerExit();
 
-            _robotControllers.Remove(robotController);
+            _robotDetectionControllers.Remove(robotController);
         }
     }
 }
