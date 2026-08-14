@@ -3,6 +3,8 @@ using UnityEngine;
 
 public class PlayerInteraction : MonoBehaviour
 {
+    [SerializeField] private LayerMask robotLayer;
+
     private List<RobotDetectionController> _robotDetectionControllers = new List<RobotDetectionController>();
 
     public void Hack()
@@ -29,7 +31,9 @@ public class PlayerInteraction : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        if (other.CompareTag("Robot") && other.TryGetComponent<RobotDetectionController>(out var robotController))
+        if (!IsRobotLayer(other.gameObject)) return;
+
+        if (other.TryGetComponent<RobotDetectionController>(out var robotController))
         {
             robotController.OnPlayerEnter(gameObject);
 
@@ -39,11 +43,18 @@ public class PlayerInteraction : MonoBehaviour
 
     private void OnTriggerExit(Collider other)
     {
-        if (other.CompareTag("Robot") && other.TryGetComponent<RobotDetectionController>(out var robotController))
+        if (!IsRobotLayer(other.gameObject)) return;
+
+        if (other.TryGetComponent<RobotDetectionController>(out var robotController))
         {
             robotController.OnPlayerExit();
 
             _robotDetectionControllers.Remove(robotController);
         }
+    }
+
+    private bool IsRobotLayer(GameObject gameObject)
+    {
+        return (robotLayer.value & (1 << gameObject.layer)) != 0;
     }
 }

@@ -470,9 +470,9 @@ GameObject:
   - component: {fileID: 9013017041141432957}
   - component: {fileID: 494318875790339000}
   - component: {fileID: 4130620895992825319}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Robot
-  m_TagString: Robot
+  m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -504,7 +504,7 @@ BoxCollider:
   m_Material: {fileID: 0}
   m_IncludeLayers:
     serializedVersion: 2
-    m_Bits: 0
+    m_Bits: 8
   m_ExcludeLayers:
     serializedVersion: 2
     m_Bits: 0

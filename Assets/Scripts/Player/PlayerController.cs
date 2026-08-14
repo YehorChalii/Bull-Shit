@@ -15,8 +15,7 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private float groundStickSpeed;
 
     private Vector2 _inputVector;
-
-    private CharacterController _characterController;
+    private Rigidbody _rigidbody;
 
     private float _currentMovementSpeed;
     private float _currentRotationSpeed;
@@ -24,7 +23,7 @@ public class PlayerController : MonoBehaviour
     private void Awake()
     {
         Cursor.lockState = CursorLockMode.Locked;
-        _characterController = GetComponent<CharacterController>();
+        _rigidbody = GetComponent<Rigidbody>();
     }
 
     public void UpdateMovementInputVector(Vector2 inputVector)
@@ -32,13 +31,11 @@ public class PlayerController : MonoBehaviour
         _inputVector = inputVector;
     }
 
-    private void Update()
+    private void FixedUpdate()
     {
-        float deltaTime = Time.deltaTime;
-
+        float deltaTime = Time.fixedDeltaTime;
         UpdateCurrentMovementSpeed(deltaTime);
         UpdateCurrentRotationSpeed(deltaTime);
-
         ApplyMovement(deltaTime);
         ApplyRotation(deltaTime);
     }
@@ -46,12 +43,9 @@ public class PlayerController : MonoBehaviour
     private void UpdateCurrentMovementSpeed(float deltaTime)
     {
         float targetSpeed = _inputVector.y * maxMovementSpeed;
-
         bool isSpeedingUp = Mathf.Abs(targetSpeed) > Mathf.Abs(_currentMovementSpeed) &&
                              Mathf.Sign(targetSpeed) == Mathf.Sign(_currentMovementSpeed == 0 ? targetSpeed : _currentMovementSpeed);
-
         float duration = (targetSpeed == 0f || !isSpeedingUp) ? moveDecelerationTime : moveAccelerationTime;
-
         _currentMovementSpeed = ApproachTarget(_currentMovementSpeed, targetSpeed, duration, deltaTime);
     }
 
@@ -62,41 +56,34 @@ public class PlayerController : MonoBehaviour
             _currentRotationSpeed = 0f;
             return;
         }
-
         float targetRotationSpeed = _inputVector.x * maxRotationSpeed;
         _currentRotationSpeed = ApproachTarget(_currentRotationSpeed, targetRotationSpeed, rotationAccelerationTime, deltaTime);
     }
-
     private void ApplyMovement(float deltaTime)
     {
-        Vector3 movement = transform.forward * (_currentMovementSpeed * deltaTime);
-        movement += Vector3.down * (groundStickSpeed * deltaTime);
-        _characterController.Move(movement);
+        Vector3 horizontalVelocity = transform.forward * _currentMovementSpeed;
+        _rigidbody.linearVelocity = new Vector3(horizontalVelocity.x, -groundStickSpeed, horizontalVelocity.z);
     }
-
     private void ApplyRotation(float deltaTime)
     {
         if (_currentRotationSpeed != 0f)
         {
-            transform.Rotate(Vector3.up, _currentRotationSpeed * deltaTime);
+            Quaternion deltaRotation = Quaternion.Euler(Vector3.up * (_currentRotationSpeed * deltaTime));
+            _rigidbody.MoveRotation(_rigidbody.rotation * deltaRotation);
         }
     }
-
     private float ApproachTarget(float current, float target, float duration, float deltaTime)
     {
         if (duration <= 0f)
         {
             return target;
         }
-
         float lerpFactor = 1f - Mathf.Exp(-deltaTime / duration);
         float result = Mathf.Lerp(current, target, lerpFactor);
-
         if (Mathf.Abs(result - target) < 0.01f)
         {
             result = target;
         }
-
         return result;
     }
 }

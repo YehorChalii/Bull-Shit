@@ -33,9 +33,9 @@ public class RobotBehaviourController : MonoBehaviour
         CollectionState.OnCompleted += () => TransitionTo(ReturnToBaseState);
     }
 
-    private void FixedUpdate()
+    private void Update()
     {
-        _currentState?.Tick(Time.fixedDeltaTime);
+        _currentState?.Tick(Time.deltaTime);
     }
 
     public void SetWaypoints(IReadOnlyList<Transform> waypoints)
