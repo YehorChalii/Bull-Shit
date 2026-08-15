@@ -4,9 +4,11 @@ using UnityEngine;
 
 public class RobotBehaviourController : MonoBehaviour
 {
+    [Header("Collection")]
     [SerializeField] private float collectionDuration = 3f;
 
     private RobotMovementController _movementController;
+    private RobotGarbageController _garbageController;
     private RobotContext _context;
 
     private IRobotState _currentState;
@@ -15,22 +17,28 @@ public class RobotBehaviourController : MonoBehaviour
 
     private Transform _detectedPlayer;
 
-    public RobotFollowToCollectState FollowToCollectState { get; private set; }
-    public RobotCollectionState CollectionState { get; private set; }
-    public RobotReturnToBaseState ReturnToBaseState { get; private set; }
+    private RobotFollowToCollectState _followToCollectState;
+    private RobotCollectionState _collectionState;
+    private RobotReturnToBaseState _returnToBaseState;
+
+    private RobotTakeGarbageState _takeGarbageState;
+    private RobotFollowToThrowState _followToThrowState;
+    private RobotThrowGarbageState _throwGarbageState;
+
+    private bool _isHacked;
 
     private void Awake()
     {
         _movementController = GetComponent<RobotMovementController>();
+        _garbageController = GetComponent<RobotGarbageController>();
 
-        _context = new RobotContext(this, _movementController);
+        _context = new RobotContext(
+            this,
+            _movementController
+        );
 
-        FollowToCollectState = new RobotFollowToCollectState(_context);
-        CollectionState = new RobotCollectionState(_context, collectionDuration);
-        ReturnToBaseState = new RobotReturnToBaseState(_context);
-
-        FollowToCollectState.OnCompleted += () => TransitionTo(CollectionState);
-        CollectionState.OnCompleted += () => TransitionTo(ReturnToBaseState);
+        CreateStates();
+        ConnectStates();
     }
 
     private void Update()
@@ -38,18 +46,131 @@ public class RobotBehaviourController : MonoBehaviour
         _currentState?.Tick(Time.deltaTime);
     }
 
+    private void CreateStates()
+    {
+        _followToCollectState = new RobotFollowToCollectState(_context);
+        _collectionState = new RobotCollectionState(_context, collectionDuration);
+        _returnToBaseState = new RobotReturnToBaseState(_context);
+
+        _takeGarbageState = new RobotTakeGarbageState(_context);
+        _followToThrowState = new RobotFollowToThrowState(_context);
+        _throwGarbageState = new RobotThrowGarbageState(_context);
+    }
+
+    private void ConnectStates()
+    {
+        _followToCollectState.OnCompleted += () =>
+        {
+            TransitionTo(_collectionState);
+        };
+
+        _collectionState.OnCompleted += () =>
+        {
+            _garbageController.SpawnGarbage();
+
+            TransitionTo(_returnToBaseState);
+        };
+
+        _returnToBaseState.OnCompleted += OnReturnToBaseCompleted;
+
+        _takeGarbageState.OnCompleted += () =>
+        {
+            SetupThrowPath();
+
+            TransitionTo(_followToThrowState);
+        };
+
+        _followToThrowState.OnCompleted += () =>
+        {
+            TransitionTo(_throwGarbageState);
+        };
+
+        _throwGarbageState.OnCompleted += () =>
+        {
+            SetupReturnPath();
+
+            TransitionTo(_returnToBaseState);
+        };
+    }
+
     public void SetWaypoints(IReadOnlyList<Transform> waypoints)
     {
+        if (waypoints == null || waypoints.Count == 0)
+            return;
+
         _waypoints = waypoints;
 
         _movementController.SetWaypoints(waypoints);
 
-        TransitionTo(FollowToCollectState);
+        _isHacked = false;
+
+        TransitionTo(_followToCollectState);
     }
 
-    public void SetReturnWaypoints()
+    private void OnReturnToBaseCompleted()
+    {
+        if (!_isHacked)
+        {
+            return;
+        }
+
+        TransitionTo(_takeGarbageState);
+    }
+
+    public void Hack()
+    {
+        if (_isHacked) return;
+
+        _isHacked = true;
+        _detectedPlayer = null;
+
+        _garbageController.DropGarbage();
+
+        if (_currentState == _returnToBaseState) return;
+
+        _currentState?.Exit();
+
+        SetupReturnPathFromCurrentPosition();
+
+        TransitionTo(_returnToBaseState);
+    }
+
+    private void SetupReturnPath()
     {
         IReadOnlyList<Transform> returnPath = CreateReturnPath();
+
+        _movementController.SetWaypoints(returnPath);
+
+        _movementController.StartFollowing();
+    }
+
+    private void SetupThrowPath()
+    {
+        if (_waypoints == null || _waypoints.Count < 3) return;
+
+        int throwWaypointIndex = Random.Range(1, _waypoints.Count - 1);
+
+        IReadOnlyList<Transform> throwPath = CreatePathToWaypoint(throwWaypointIndex);
+
+        _movementController.SetWaypoints(throwPath);
+
+        _movementController.StartFollowing();
+    }
+
+    private void SetupReturnPathFromCurrentPosition()
+    {
+        if (_waypoints == null || _waypoints.Count == 0) return;
+
+        int currentIndex = _movementController.CurrentWaypointIndex;
+
+        currentIndex = Mathf.Clamp(currentIndex, 0, _waypoints.Count - 1);
+
+        List<Transform> returnPath = new List<Transform>();
+
+        for (int i = currentIndex; i >= 0; i--)
+        {
+            returnPath.Add(_waypoints[i]);
+        }
 
         _movementController.SetWaypoints(returnPath);
     }
@@ -61,24 +182,25 @@ public class RobotBehaviourController : MonoBehaviour
         return _waypoints.Take(_waypoints.Count - 1).Reverse().ToList();
     }
 
-    public void TransitionTo(IRobotState newState)
+    private IReadOnlyList<Transform> CreatePathToWaypoint(int waypointIndex)
     {
-        if (_currentState == newState) return;
+        if (_waypoints == null || _waypoints.Count == 0)
+        {
+            return new List<Transform>();
+        }
 
-        _currentState?.Exit();
-        _currentState = newState;
-        _currentState?.Enter();
+        waypointIndex = Mathf.Clamp(waypointIndex, 0, _waypoints.Count - 1);
 
-        UpdatePlayerInteraction();
+        return _waypoints.Take(waypointIndex + 1).ToList();
     }
 
     public void OnPlayerDetected(GameObject player)
     {
-        if (player == null) return;
+        if (player == null || _isHacked) return;
 
         _detectedPlayer = player.transform;
 
-        if (_currentState == FollowToCollectState || _currentState == ReturnToBaseState)
+        if (_currentState == _followToCollectState || _currentState == _returnToBaseState)
         {
             _movementController.FaceTarget(_detectedPlayer);
         }
@@ -88,7 +210,9 @@ public class RobotBehaviourController : MonoBehaviour
     {
         _detectedPlayer = null;
 
-        if (_currentState == FollowToCollectState || _currentState == ReturnToBaseState)
+        if (_isHacked) return;
+
+        if (_currentState == _followToCollectState || _currentState == _returnToBaseState)
         {
             _movementController.ResumeFollowing();
         }
@@ -96,19 +220,22 @@ public class RobotBehaviourController : MonoBehaviour
 
     private void UpdatePlayerInteraction()
     {
-        if (_detectedPlayer == null)
-            return;
+        if (_detectedPlayer == null || _isHacked) return;
 
-        if (_currentState == FollowToCollectState ||
-            _currentState == ReturnToBaseState)
+        if (_currentState == _followToCollectState || _currentState == _returnToBaseState)
         {
             _movementController.FaceTarget(_detectedPlayer);
         }
     }
 
-    public void Hack()
+    public void TransitionTo(IRobotState newState)
     {
+        if (_currentState == newState) return;
+
         _currentState?.Exit();
-        Destroy(gameObject);
+        _currentState = newState;
+        _currentState?.Enter();
+
+        UpdatePlayerInteraction();
     }
 }

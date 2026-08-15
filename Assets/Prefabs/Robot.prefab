@@ -308,7 +308,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: fe294c987f2eb9f4eb5c12ee9e35b571, type: 2}
+  - {fileID: 2100000, guid: 62c863b746847c64aa543eb4aa08c5f0, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -398,7 +398,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 2e33e891578411446b662cdd46c7fb7f, type: 2}
+  - {fileID: 2100000, guid: 5fb48e44c1c985b4caae616050256e37, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -470,6 +470,7 @@ GameObject:
   - component: {fileID: 9013017041141432957}
   - component: {fileID: 494318875790339000}
   - component: {fileID: 4130620895992825319}
+  - component: {fileID: 4291081278082645049}
   m_Layer: 6
   m_Name: Robot
   m_TagString: Untagged
@@ -490,6 +491,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
+  - {fileID: 3834005972577694281}
   - {fileID: 7645445894566283751}
   - {fileID: 3192455819984816825}
   m_Father: {fileID: 0}
@@ -564,7 +566,7 @@ MonoBehaviour:
   maxMovementSpeed: 5
   movementSmoothing: 0.2
   rotationSpeed: 120
-  stateTransitionDelay: 0.5
+  stateTransitionDelay: 0.3
 --- !u!114 &4130620895992825319
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -578,6 +580,22 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::RobotDetectionController
   hintUI: {fileID: 6900329037237533197}
+--- !u!114 &4291081278082645049
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5968901910757807126}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0553e9869ad95c448bc2b1837ba7bdbd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::RobotGarbageController
+  garbageObjects:
+  - {fileID: 2642103977578641522, guid: fcb042faba36e084cb965be209b5fc46, type: 3}
+  - {fileID: 1187435059392652261, guid: 11dfb2b2432992b469b96da61695585a, type: 3}
+  garbageSpawnPoint: {fileID: 3834005972577694281}
 --- !u!1 &6164704412839152937
 GameObject:
   m_ObjectHideFlags: 0
@@ -715,6 +733,37 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!1 &7385451021164180428
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 3834005972577694281}
+  m_Layer: 6
+  m_Name: Garbage Spawn Point
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &3834005972577694281
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7385451021164180428}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 1.5}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 7226987099685898182}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &8043768547531973857
 GameObject:
   m_ObjectHideFlags: 0
@@ -931,7 +980,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 2e33e891578411446b662cdd46c7fb7f, type: 2}
+  - {fileID: 2100000, guid: 5fb48e44c1c985b4caae616050256e37, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
